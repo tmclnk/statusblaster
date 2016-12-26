@@ -13,7 +13,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
-		<module>statusblaster-client</module>
 		<module>statusblaster-aggregator</module>
 		<module>statusblaster-api</module>
 	</modules>
