@@ -24,9 +24,14 @@ public class AggregatorServer {
 		contextHandlers.addHandler(pingHandler);
 
 		// one context to show statuses (json?)
-		ContextHandler viewHandler = new ContextHandler("/view");
-		viewHandler.setHandler(new ViewHandler(statusService));
-		contextHandlers.addHandler(viewHandler);
+		ContextHandler jsonHandler = new ContextHandler("/json");
+		jsonHandler.setHandler(new JsonHandler(statusService));
+		contextHandlers.addHandler(jsonHandler);
+		
+		// one context to show statuses (hex?)
+		ContextHandler hexHandler = new ContextHandler("/hex");
+		hexHandler.setHandler(new HexHandler(statusService));
+		contextHandlers.addHandler(hexHandler);
 	
 		// context to just list available apps
 		ContextHandler listHandler = new ContextHandler("/list");

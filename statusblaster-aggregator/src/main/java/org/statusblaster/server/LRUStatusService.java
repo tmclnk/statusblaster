@@ -1,24 +1,19 @@
 package org.statusblaster.server;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.statusblaster.StatusMessage;
 import org.statusblaster.aggregator.StatusService;
+import org.statusblaster.aggregator.TimeBuckets;
 
 public class LRUStatusService implements StatusService {
-	private Logger logger = LoggerFactory.getLogger(getClass());
-	/** minimum time between puts */
-	private static final long interval = 1000;
-	private Map<String, List<Long>> pings;
-	{
-		pings = new HashMap<>();
-	}
+	private Map<String, TimeBuckets> pings = new Hashtable<>();
+	private int size = 64;
+	private long interval = 1000;
 	
 	@Override
 	public List<String> keys() {
@@ -28,27 +23,28 @@ public class LRUStatusService implements StatusService {
 	}
 
 	@Override
-	public void notify(StatusMessage message) {
-		String key = message.getKey();
-		List<Long> times = pings.get(key);
-		final long now = System.currentTimeMillis();
-		if(times == null){
-			// meh, good enough
-			times = Collections.synchronizedList( new ArrayList<>() );
-			pings.put(key, times);
-			times.add(now);
-			logger.trace("{}:{}", key, message.getStatus());
-		} else {
-			final long lastPing = times.get(times.size() - 1);
-			if(now - lastPing > interval){
-				times.add(now);
-				logger.trace("{}:{}", key, message.getStatus());
-			}
+	public void notify(String key) {
+		key = key.toLowerCase();
+		TimeBuckets buckets = pings.get(key);
+		if(buckets == null){
+			buckets = new TimeBuckets(size, interval);
+			pings.put(key, buckets);
 		}
+		buckets.ping();
 	}
 
 	@Override
-	public List<Long> statusOf(String key) {
-		return this.pings.get(key.toLowerCase());
+	public void toJSON(String key, Appendable out) throws IOException {
+		TimeBuckets bucket = pings.get(key);
+		if(bucket != null){
+			bucket.toJSON(out);
+		}
 	}
+	@Override
+	public void toHex(String key, Appendable out) throws IOException {
+		TimeBuckets bucket = pings.get(key);
+		if(bucket != null){
+			bucket.toHex(out);
+		}
+	}	
 }

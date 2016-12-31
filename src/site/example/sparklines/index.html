@@ -8,7 +8,7 @@
 
 <script type="text/javascript" src="jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="jquery.sparkline.min.js"></script>
-<script type="text/javascript" src="bitarray.js"></script>
+<script type="text/javascript" src="bits.js"></script>
 <link href="solarized-dark.min.css" rel="stylesheet"></link>
 
 <style>
@@ -73,8 +73,7 @@ input[type=text]{
 		label.appendTo(div);
 		
 		var graph = $('<span/>', {
-			id : e,
-			class: 'graph'
+			id : e
 		});
 		graph.appendTo(div);
 		div.appendTo('#servicelist');
@@ -108,22 +107,25 @@ input[type=text]{
 			<input id="addbtn" type="button" value="ping" onclick="ping();"/>
 		</form>	
 	<script>
-
+	function adjust(val){
+		return val ? 10 : -10;
+	}
 	setInterval(function() {
 		keys.forEach(function(key) {
-			$.ajax("http://localhost:9736/view/" + key).done(
-					function(str) {
-						var bits = new BitArray(60);	
-						var data = bits.fromBase64(str);
-						var vals = data.map(function(val, i) {
-							return val ? 10 : -10;
-						});
-						$('#' + key).sparkline(vals, {
-							type : 'bar',
-							barColor : 'green',
-							barSpacing:0
-						});
-						$('.shit').text('');
+			$.getJSON("http://localhost:9736/json/" + key).done(
+					function(arr) {
+						if(0 == arr.reduce(function(a,b) { return  a + b; })){
+							$('#' + key).attr('class', 'service-label');
+							$('#' + key).text(':-(');
+						} else {
+							$('#' + key).sparkline(arr.map(adjust), {
+								type:'bar',
+								barColor:'green',
+								barSpacing:0,
+								height:'4.0vh'
+							});
+							$('.shit').text('');
+						}
 					})
 			.fail(function(data, text, xhr) {
 				$('#' + key).text('SHIT!');
@@ -133,7 +135,7 @@ input[type=text]{
 	}, 1000);
 	
 	setInterval(function(){
-		
+			
 	}, 60000);
 	</script>
 </body>
