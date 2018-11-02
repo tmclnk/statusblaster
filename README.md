@@ -1,4 +1,4 @@
-#StatusBlaster
+# StatusBlaster
 
 A barebones, horribly inefficient, insecure way of monitoring
 applications over HTTP.  Example front-end using static HTML
